@@ -10,7 +10,7 @@ NOMASTERWORK_ESSENCE = 15
 app = Flask(__name__, static_url_path="")
 cors = CORS(
     app,
-    resources={r"/calculate": {"origins": "https://dawning-optimizer.netlify.app/"}},
+    resources={r"/*": {"origins": ["https://dawning-optimizer.netlify.app/"]}},
 )
 app.config["CORS_HEADERS"] = "Content-Type"
 
