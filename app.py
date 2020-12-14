@@ -1,6 +1,6 @@
 import os
 from flask import Flask, request, jsonify, send_from_directory
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 import numpy as np
 import cvxpy as cp
 
@@ -9,8 +9,7 @@ NOMASTERWORK_ESSENCE = 15
 
 app = Flask(__name__, static_url_path="")
 cors = CORS(
-    app,
-    resources={r"/*": {"origins": ["https://dawning-optimizer.netlify.app/"]}},
+    app
 )
 app.config["CORS_HEADERS"] = "Content-Type"
 
@@ -62,6 +61,7 @@ def solveILP(amounts, essence_cost):
 
 
 @app.route("/calculate", methods=["POST"])
+@cross_origin()
 def calculate():
     amounts = []
     for ingredient in ingredients:
