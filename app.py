@@ -8,9 +8,7 @@ MASTERWORKED_ESSENCE = 10
 NOMASTERWORK_ESSENCE = 15
 
 app = Flask(__name__, static_url_path="")
-cors = CORS(
-    app
-)
+cors = CORS(app)
 app.config["CORS_HEADERS"] = "Content-Type"
 
 ingredients = []
