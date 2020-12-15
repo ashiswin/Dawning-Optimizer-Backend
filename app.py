@@ -34,8 +34,27 @@ with open("cost.csv") as f:
 
         i += 1
 
+def parseConstraints(x, constraints):
+    constraintList = []
 
-def solveILP(amounts, essence_cost):
+    for constraint in constraints:
+        name = constraint["name"]
+        equality = constraint["equality"]
+        value = constraint["value"]
+
+        index = recipes.index(name)
+
+        if equality == "lte":
+            constraintList.append(x[index] <= value)
+        elif equality == "eq":
+            constraintList.append(x[index] == value)
+        elif equality == "gte":
+            constraintList.append(x[index] >= value)
+        else:
+            continue
+    return constraintList
+
+def solveILP(amounts, essence_cost, rawConstraints):
     # Essence of Dawning guaranteed to be the last item in the list
     if amounts[-1] < essence_cost:
         return {"total": 0, "items": []}
@@ -45,6 +64,7 @@ def solveILP(amounts, essence_cost):
 
     objective = cp.Maximize(cp.sum(cost * x))
     constraints = [cost * x <= amounts, x >= 0]
+    constraints.extend(parseConstraints(x, rawConstraints))
     prob = cp.Problem(objective, constraints)
 
     prob.solve(solver=cp.GLPK_MI)
@@ -61,19 +81,22 @@ def solveILP(amounts, essence_cost):
 @app.route("/calculate", methods=["POST"])
 @cross_origin()
 def calculate():
+    quantities = request.json["quantities"]
+    constraints = request.json["constraints"]
+
     amounts = []
     for ingredient in ingredients:
-        if ingredient in request.json and request.json[ingredient] != "":
-            amounts.append(request.json[ingredient])
+        if ingredient in quantities and quantities[ingredient] != "":
+            amounts.append(quantities[ingredient])
         else:
             amounts.append(0)
     amounts = np.array(amounts, dtype=np.int64)
 
     # Calculate without masterwork
-    response = solveILP(amounts, NOMASTERWORK_ESSENCE)
+    response = solveILP(amounts, NOMASTERWORK_ESSENCE, constraints)
 
     # Calculate with masterwork
-    mwresult = solveILP(amounts, MASTERWORKED_ESSENCE)
+    mwresult = solveILP(amounts, MASTERWORKED_ESSENCE, constraints)
     response["mwtotal"] = mwresult["total"]
     response["mwitems"] = mwresult["items"]
 
