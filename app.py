@@ -69,6 +69,9 @@ def solveILP(amounts, essence_cost, rawConstraints):
 
     prob.solve(solver=cp.GLPK_MI)
 
+    if x.value is None:
+        return {"total": 0, "items": []}
+
     result = []
 
     for i in range(x.value.shape[0]):
